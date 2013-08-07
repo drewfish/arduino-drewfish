@@ -16,12 +16,23 @@ use POSIX;
 
 
 my $F_CPU = 16_000_000;
-my @PRESCALARS = (
-    [ 1, 8, 64, 256, 1024 ],
-    [ 1, 8, 64, 256, 1024 ],
-    [ 1, 8, 32, 64 ]
+my @TIMERS = (
+    {
+        name => 0,
+        maxOCR => 255,
+        prescalars => [ 1, 8, 64, 256, 1024 ]
+    },
+    {
+        name => 1,
+        maxOCR => 65535,
+        prescalars => [ 1, 8, 64, 256, 1024 ]
+    },
+    {
+        name => 2,
+        maxOCR => 255,
+        prescalars => [ 1, 8, 32, 64 ]
+    }
 );
-my @MAX_OCRS = ( 256, 65536, 256 );
 
 
 sub ocr {
@@ -47,17 +58,15 @@ sub main {
 
     my @exacts;
     my @almosts;
-    foreach my $timer ( 0 .. 2 ) {
-        my $max_ocr = $MAX_OCRS[$timer];
-        foreach my $prescalar ( @{$PRESCALARS[$timer]} ) {
-            my $ocr = ocr($prescalar, $targethz);
-            next if $ocr >= $max_ocr;
-
+    foreach my $timer ( @TIMERS ) {
+        foreach my $ps ( @{$timer->{'prescalars'}} ) {
+            my $ocr = ocr($ps, $targethz);
+            next if $ocr > $timer->{'maxOCR'};
             if ($ocr eq POSIX::floor($ocr)) {
-                push @exacts, { timer => $timer, prescalar => $prescalar, ocr => $ocr };
+                push @exacts, { timer => $timer->{'name'}, ps => $ps, ocr => $ocr };
             }
             else {
-                push @almosts, { timer => $timer, prescalar => $prescalar, ocr => $ocr };
+                push @almosts, { timer => $timer->{'name'}, ps => $ps, ocr => $ocr };
             }
         }
     }
@@ -66,9 +75,9 @@ sub main {
         print "EXACT MATCHES\n";
         foreach my $exact ( @exacts ) {
             my $timer = $exact->{'timer'};
-            my $prescalar = $exact->{'prescalar'};
+            my $ps = $exact->{'ps'};
             my $ocr = $exact->{'ocr'};
-            print "    timer $timer -- prescalar $prescalar -- ocr $ocr\n";
+            print "    timer $timer -- prescalar $ps -- ocr $ocr\n";
         }
     }
 
@@ -78,23 +87,21 @@ sub main {
         print "APPROXIMATES\n";
         foreach my $almost ( @almosts ) {
             my $timer = $almost->{'timer'};
-            my $prescalar = $almost->{'prescalar'};
+            my $ps = $almost->{'ps'};
             my $ocr = $almost->{'ocr'};
-            print "    timer $timer -- prescalar $prescalar\n";
+            print "    timer $timer -- prescalar $ps\n";
             my $a_ocr = POSIX::floor($ocr);
             my $b_ocr = POSIX::ceil($ocr);
             if ($a_ocr >= 0) {
-                my $a_hz = hz($prescalar, $a_ocr);
+                my $a_hz = hz($ps, $a_ocr);
                 print "        ocr $a_ocr -- $a_hz hz -- diff +", ($a_hz - $targethz), " hz\n";
             }
             if ($b_ocr >= 0) {
-                my $b_hz = hz($prescalar, $b_ocr);
+                my $b_hz = hz($ps, $b_ocr);
                 print "        ocr $b_ocr -- $b_hz hz -- diff -", ($targethz - $b_hz), " hz\n";
             }
         }
     }
-    
-
 }
 main(@ARGV);
 

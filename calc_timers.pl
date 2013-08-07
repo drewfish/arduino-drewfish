@@ -1,14 +1,19 @@
 #!/usr/bin/env perl
+#
+# Copyright (c) 2013 Drew Folta.  All rights reserved.
+# Copyrights licensed under the MIT License.
+# See the accompanying LICENSE.txt file for terms.
+#
+#
+# interrupt frequency (Hz) = F_CPU / (prescaler * (ocr + 1))
+# ocr = ( F_CPU / (prescaler * desired interrupt frequency) ) - 1
+#
 
 
 use strict;
 use warnings;
-use Data::Dumper;
 use POSIX;
 
-
-# interrupt frequency (Hz) = F_CPU / (prescaler * (ocr + 1))
-# ocr = ( F_CPU / (prescaler * desired interrupt frequency) ) - 1
 
 my $F_CPU = 16_000_000;
 my @PRESCALARS = (
@@ -17,7 +22,6 @@ my @PRESCALARS = (
     [ 1, 8, 32, 64 ]
 );
 my @MAX_OCRS = ( 256, 65536, 256 );
-
 
 
 sub ocr {
@@ -79,11 +83,14 @@ sub main {
             print "    timer $timer -- prescalar $prescalar\n";
             my $a_ocr = POSIX::floor($ocr);
             my $b_ocr = POSIX::ceil($ocr);
-            my $a_hz = hz($prescalar, $a_ocr);
-            my $b_hz = hz($prescalar, $b_ocr);
-            print "        ocr $a_ocr -- $a_hz hz -- diff +", ($a_hz - $targethz), " hz\n";
-            print "        ocr $b_ocr -- $b_hz hz -- diff -", ($targethz - $b_hz), " hz\n";
-            
+            if ($a_ocr >= 0) {
+                my $a_hz = hz($prescalar, $a_ocr);
+                print "        ocr $a_ocr -- $a_hz hz -- diff +", ($a_hz - $targethz), " hz\n";
+            }
+            if ($b_ocr >= 0) {
+                my $b_hz = hz($prescalar, $b_ocr);
+                print "        ocr $b_ocr -- $b_hz hz -- diff -", ($targethz - $b_hz), " hz\n";
+            }
         }
     }
     

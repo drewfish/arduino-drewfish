@@ -16,7 +16,7 @@ my @PRESCALARS = (
     [ 1, 8, 64, 256, 1024 ],
     [ 1, 8, 32, 64 ]
 );
-my @WIDTHS = ( 256, 65536, 256 );
+my @MAX_OCRS = ( 256, 65536, 256 );
 
 
 
@@ -44,10 +44,10 @@ sub main {
     my @exacts;
     my @almosts;
     foreach my $timer ( 0 .. 2 ) {
-        my $width = $WIDTHS[$timer];
+        my $max_ocr = $MAX_OCRS[$timer];
         foreach my $prescalar ( @{$PRESCALARS[$timer]} ) {
             my $ocr = ocr($prescalar, $targethz);
-            next if $ocr >= $width;
+            next if $ocr >= $max_ocr;
 
             if ($ocr eq POSIX::floor($ocr)) {
                 push @exacts, { timer => $timer, prescalar => $prescalar, ocr => $ocr };
@@ -77,12 +77,12 @@ sub main {
             my $prescalar = $almost->{'prescalar'};
             my $ocr = $almost->{'ocr'};
             print "    timer $timer -- prescalar $prescalar\n";
-            my $min_ocr = POSIX::floor($ocr);
-            my $max_ocr = POSIX::ceil($ocr);
-            my $min_hz = hz($prescalar, $min_ocr);
-            my $max_hz = hz($prescalar, $max_ocr);
-            print "        ocr $min_ocr -- $min_hz hz -- diff +", ($min_hz - $targethz), " hz\n";
-            print "        ocr $max_ocr -- $max_hz hz -- diff -", ($targethz - $max_hz), " hz\n";
+            my $a_ocr = POSIX::floor($ocr);
+            my $b_ocr = POSIX::ceil($ocr);
+            my $a_hz = hz($prescalar, $a_ocr);
+            my $b_hz = hz($prescalar, $b_ocr);
+            print "        ocr $a_ocr -- $a_hz hz -- diff +", ($a_hz - $targethz), " hz\n";
+            print "        ocr $b_ocr -- $b_hz hz -- diff -", ($targethz - $b_hz), " hz\n";
             
         }
     }

@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2013 Drew Folta.  All rights reserved.
+ * Copyrights licensed under the MIT License.
+ * See the accompanying LICENSE.txt file for terms.
+ */
+
 /**********************************************************************
  * TIMESTACK
  */

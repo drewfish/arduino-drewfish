@@ -40,14 +40,23 @@ namespace drewfish {
             }
 
             void print(bool full=false) {
+                uint32_t curr, last = 0;
                 size_t end = full ? SIZE : next_mark;
-                Serial.println("-------------------------------------- TIMESTACK");
+                Serial.print("-------------------------------------- TIMESTACK -- ");
+                Serial.println(rollover);
                 for (size_t i = 0; i < end; ++i) {
+                    curr = stack[i];
                     Serial.print("-- ");
                     Serial.print(i);
                     Serial.print(" -- ");
-                    Serial.print(stack[i]);
+                    Serial.print(curr);
+                    Serial.print(" -- ");
+                    Serial.print(curr - last);
+                    if (i == next_mark) {
+                        Serial.print(" -- NEXT");
+                    }
                     Serial.println("");
+                    last = curr;
                 }
             }
     };
